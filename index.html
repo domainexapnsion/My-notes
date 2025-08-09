@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aesthetic Watchlist</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Architects+Daughter&display=swap');
+
+        body {
+            font-family: 'Architects Daughter', cursive;
+            background-color: #f7f3e9; /* A light, paper-like color */
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: auto;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            position: relative;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                to bottom,
+                #f1f1f1,
+                #f1f1f1 24px,
+                #ccc 25px
+            );
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        #item-name {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 1.2em;
+            border: 1px solid #ccc;
+            font-family: 'Architects Daughter', cursive;
+        }
+
+        .item-type {
+            padding: 10px;
+            font-size: 1em;
+            border: 1px solid #ccc;
+            font-family: 'Architects Daughter', cursive;
+            cursor: pointer;
+        }
+
+        .item-type.active {
+            background-color: #333;
+            color: #fff;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1.2em;
+            border: 1px solid #333;
+            background-color: #fff;
+            cursor: pointer;
+            font-family: 'Architects Daughter', cursive;
+        }
+
+        button:hover {
+            background-color: #333;
+            color: #fff;
+        }
+
+        #watchlist {
+            list-style: none;
+            padding: 0;
+        }
+
+        .watchlist-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 20px;
+            border-bottom: 1px dashed #ccc;
+            padding-bottom: 15px;
+        }
+
+        .watchlist-item:last-child {
+            border-bottom: none;
+        }
+
+        .item-image {
+            width: 100px;
+            height: 150px;
+            object-fit: cover;
+            border: 2px solid #333;
+        }
+
+        .item-details a {
+            text-decoration: none;
+            color: #333;
+            font-size: 1.5em;
+        }
+
+        .item-details a:hover {
+            text-decoration: underline;
+        }
+
+        .remove-btn {
+            background: none;
+            border: none;
+            color: red;
+            font-size: 1.5em;
+            cursor: pointer;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Aesthetic Watchlist</h1>
+        <div class="input-group">
+            <input type="text" id="item-name" placeholder="Movie, TV Show, or Anime Name...">
+            <button id="add-btn">Add</button>
+        </div>
+        <div class="input-group">
+            <span class="item-type active" data-type="movie">Movie / TV Show</span>
+            <span class="item-type" data-type="anime">Anime</span>
+        </div>
+        <ul id="watchlist">
+            </ul>
+    </div>
+
+    <script>
+        const apiKey = 'YOUR_API_KEY'; // You need an API key for a movie/tv show database
+        const animeApiKey = 'YOUR_ANIME_API_KEY'; // You might need a separate API key for an anime database
+
+        const itemNameInput = document.getElementById('item-name');
+        const addBtn = document.getElementById('add-btn');
+        const watchlist = document.getElementById('watchlist');
+        const itemTypes = document.querySelectorAll('.item-type');
+
+        let selectedType = 'movie';
+
+        itemTypes.forEach(type => {
+            type.addEventListener('click', () => {
+                itemTypes.forEach(t => t.classList.remove('active'));
+                type.classList.add('active');
+                selectedType = type.dataset.type;
+            });
+        });
+
+        addBtn.addEventListener('click', addItem);
+        itemNameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                addItem();
+            }
+        });
+
+        async function addItem() {
+            const name = itemNameInput.value.trim();
+            if (name === '') return;
+
+            let imageUrl = '';
+            let link = '';
+            let itemName = name; // Default to the user's input
+
+            try {
+                if (selectedType === 'movie') {
+                    // This is a placeholder for a real API call
+                    const movieResponse = await fetch(`https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${encodeURIComponent(name)}`);
+                    const movieData = await movieResponse.json();
+
+                    if (movieData.results && movieData.results.length > 0) {
+                        const item = movieData.results[0];
+                        imageUrl = item.poster_path ? `https://image.tmdb.org/t/p/w200${item.poster_path}` : 'https://via.placeholder.com/100x150?text=No+Image';
+                        link = `https://www.imdb.com/find?q=${encodeURIComponent(item.title || item.name)}`;
+                        itemName = item.title || item.name;
+                    } else {
+                        imageUrl = 'https://via.placeholder.com/100x150?text=No+Image';
+                        link = `https://www.imdb.com/find?q=${encodeURIComponent(name)}`;
+                    }
+
+                } else if (selectedType === 'anime') {
+                    // This is a placeholder for a real API call (e.g., Jikan API for MyAnimeList)
+                    const animeResponse = await fetch(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(name)}`);
+                    const animeData = await animeResponse.json();
+
+                    if (animeData.data && animeData.data.length > 0) {
+                        const item = animeData.data[0];
+                        imageUrl = item.images.jpg.image_url;
+                        link = item.url; // MyAnimeList URL
+                        itemName = item.title;
+                    } else {
+                        imageUrl = 'https://via.placeholder.com/100x150?text=No+Image';
+                        link = `https://myanimelist.net/search/all?q=${encodeURIComponent(name)}`;
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                imageUrl = 'https://via.placeholder.com/100x150?text=No+Image';
+            }
+
+            const li = document.createElement('li');
+            li.className = 'watchlist-item';
+            li.innerHTML = `
+                <img src="${imageUrl}" alt="${itemName} poster" class="item-image">
+                <div class="item-details">
+                    <a href="${link}" target="_blank">${itemName}</a>
+                </div>
+                <button class="remove-btn">&times;</button>
+            `;
+
+            watchlist.appendChild(li);
+            itemNameInput.value = '';
+
+            const removeBtn = li.querySelector('.remove-btn');
+            removeBtn.addEventListener('click', () => {
+                li.remove();
+            });
+        }
+    </script>
+</body>
+</html>
